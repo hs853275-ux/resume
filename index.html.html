@@ -1,0 +1,1170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Crevixa – Next Generation 3D Digital Agency</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --void: #020409;
+    --deep: #050c1a;
+    --panel: rgba(6,18,40,0.75);
+    --border: rgba(0,180,255,0.18);
+    --neon: #00b4ff;
+    --neon2: #7b2fff;
+    --neon3: #ff2fff;
+    --gold: #f0c040;
+    --text: #e8f4ff;
+    --muted: rgba(200,220,255,0.55);
+    --glass: rgba(0,30,70,0.55);
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--void);
+    color: var(--text);
+    font-family: 'Outfit', sans-serif;
+    overflow-x: hidden;
+    cursor: none;
+  }
+
+  /* CUSTOM CURSOR */
+  #cursor { position: fixed; width: 14px; height: 14px; border-radius: 50%; background: var(--neon); pointer-events: none; z-index: 99999; transform: translate(-50%,-50%); transition: width .2s, height .2s, background .2s; mix-blend-mode: screen; }
+  #cursor-ring { position: fixed; width: 42px; height: 42px; border-radius: 50%; border: 1.5px solid var(--neon); pointer-events: none; z-index: 99998; transform: translate(-50%,-50%); transition: width .35s cubic-bezier(.23,1,.32,1), height .35s cubic-bezier(.23,1,.32,1), transform .1s; mix-blend-mode: screen; }
+  body:hover #cursor { opacity: 1; }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: var(--void); }
+  ::-webkit-scrollbar-thumb { background: var(--neon2); border-radius: 4px; }
+
+  /* NAV */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 22px 6vw;
+    background: linear-gradient(180deg, rgba(2,4,9,0.95) 0%, transparent 100%);
+    backdrop-filter: blur(2px);
+  }
+  .nav-logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2rem;
+    letter-spacing: 4px;
+    background: linear-gradient(90deg, var(--neon), var(--neon2), var(--neon3));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .nav-links { display: flex; gap: 2.5rem; list-style: none; }
+  .nav-links a { color: var(--muted); text-decoration: none; font-size: .9rem; font-weight: 500; letter-spacing: 1px; text-transform: uppercase; transition: color .3s; }
+  .nav-links a:hover { color: var(--neon); }
+  .nav-cta {
+    padding: 10px 26px; border: 1.5px solid var(--neon); border-radius: 30px;
+    color: var(--neon); font-size: .85rem; font-weight: 600; letter-spacing: 1.5px;
+    text-transform: uppercase; text-decoration: none; cursor: none;
+    transition: background .3s, color .3s, box-shadow .3s;
+  }
+  .nav-cta:hover { background: var(--neon); color: var(--void); box-shadow: 0 0 30px rgba(0,180,255,.4); }
+
+  /* HERO */
+  #hero {
+    position: relative; height: 100vh; display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+  }
+  #hero-canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .hero-content {
+    position: relative; z-index: 10; text-align: center;
+    max-width: 900px; padding: 0 2rem;
+  }
+  .hero-badge {
+    display: inline-block; padding: 6px 20px; border: 1px solid var(--neon);
+    border-radius: 20px; font-size: .75rem; letter-spacing: 3px; text-transform: uppercase;
+    color: var(--neon); margin-bottom: 2rem;
+    background: rgba(0,180,255,.08);
+    animation: fadeUp 1s ease both;
+  }
+  .hero-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(3rem, 8vw, 7.5rem);
+    line-height: .95;
+    letter-spacing: 2px;
+    margin-bottom: 1.5rem;
+    animation: fadeUp 1s .15s ease both;
+  }
+  .hero-title span { 
+    background: linear-gradient(135deg, var(--neon), var(--neon2), var(--neon3));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  }
+  .hero-sub {
+    font-size: clamp(1rem, 2vw, 1.2rem); color: var(--muted); max-width: 600px;
+    margin: 0 auto 2.5rem; line-height: 1.7; font-weight: 300;
+    animation: fadeUp 1s .3s ease both;
+  }
+  .hero-btns { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; animation: fadeUp 1s .45s ease both; }
+  .btn-primary {
+    padding: 14px 38px; border-radius: 40px;
+    background: linear-gradient(135deg, var(--neon), var(--neon2));
+    color: #fff; font-weight: 700; font-size: .9rem; letter-spacing: 1px; text-transform: uppercase;
+    border: none; cursor: none; text-decoration: none;
+    box-shadow: 0 0 40px rgba(0,180,255,.35);
+    transition: transform .3s, box-shadow .3s;
+  }
+  .btn-primary:hover { transform: translateY(-3px) scale(1.03); box-shadow: 0 0 60px rgba(0,180,255,.55); }
+  .btn-secondary {
+    padding: 14px 38px; border-radius: 40px; border: 1.5px solid rgba(255,255,255,.25);
+    color: var(--text); font-weight: 600; font-size: .9rem; letter-spacing: 1px; text-transform: uppercase;
+    cursor: none; text-decoration: none; background: transparent;
+    transition: border-color .3s, background .3s;
+  }
+  .btn-secondary:hover { border-color: var(--neon2); background: rgba(123,47,255,.15); }
+  .hero-scroll {
+    position: absolute; bottom: 2.5rem; left: 50%; transform: translateX(-50%);
+    display: flex; flex-direction: column; align-items: center; gap: .5rem; z-index: 10;
+    animation: fadeUp 1s .7s ease both;
+  }
+  .hero-scroll span { font-size: .7rem; letter-spacing: 3px; text-transform: uppercase; color: var(--muted); }
+  .scroll-line { width: 1px; height: 50px; background: linear-gradient(var(--neon), transparent); animation: scrollPulse 1.8s infinite; }
+
+  /* SECTIONS COMMON */
+  section { padding: 110px 6vw; position: relative; }
+  .section-tag { font-size: .72rem; letter-spacing: 4px; text-transform: uppercase; color: var(--neon); margin-bottom: 1rem; }
+  .section-title { font-family: 'Bebas Neue', sans-serif; font-size: clamp(2.4rem, 5vw, 4.5rem); line-height: 1; letter-spacing: 1px; margin-bottom: 1rem; }
+  .section-sub { color: var(--muted); font-size: 1.05rem; max-width: 580px; line-height: 1.7; font-weight: 300; margin-bottom: 3.5rem; }
+  .accent { color: var(--neon); }
+  .accent2 { color: var(--neon2); }
+
+  /* DIVIDER */
+  .divider { height: 1px; background: linear-gradient(90deg, transparent, var(--neon), var(--neon2), transparent); opacity: .25; margin: 0 6vw; }
+
+  /* SERVICES */
+  #services { background: radial-gradient(ellipse at 20% 50%, rgba(0,50,100,.18) 0%, transparent 60%), var(--void); }
+  .services-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5px; }
+  .service-card {
+    padding: 2.5rem; border: 1px solid var(--border);
+    background: var(--panel); backdrop-filter: blur(20px);
+    position: relative; overflow: hidden; transition: border-color .4s, transform .4s;
+    cursor: none;
+  }
+  .service-card::before {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(135deg, rgba(0,180,255,.06), rgba(123,47,255,.06));
+    opacity: 0; transition: opacity .4s;
+  }
+  .service-card:hover { border-color: rgba(0,180,255,.5); transform: translateY(-6px); }
+  .service-card:hover::before { opacity: 1; }
+  .service-card::after {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, var(--neon), var(--neon2));
+    transform: scaleX(0); transform-origin: left; transition: transform .4s;
+  }
+  .service-card:hover::after { transform: scaleX(1); }
+  .service-icon { font-size: 2.8rem; margin-bottom: 1.2rem; display: block; }
+  .service-num { position: absolute; top: 1.5rem; right: 1.8rem; font-family: 'Bebas Neue', sans-serif; font-size: 3rem; color: rgba(0,180,255,.07); }
+  .service-name { font-size: 1.25rem; font-weight: 700; margin-bottom: .7rem; }
+  .service-desc { font-size: .9rem; color: var(--muted); line-height: 1.65; }
+  .service-arrow { margin-top: 1.5rem; color: var(--neon); font-size: .85rem; font-weight: 600; letter-spacing: 1px; opacity: 0; transform: translateX(-10px); transition: opacity .3s, transform .3s; }
+  .service-card:hover .service-arrow { opacity: 1; transform: translateX(0); }
+
+  /* STATS */
+  #stats { padding: 80px 6vw; background: linear-gradient(135deg, rgba(0,30,80,.35), rgba(50,0,100,.35)); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+  .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2rem; text-align: center; }
+  .stat-val { font-family: 'Bebas Neue', sans-serif; font-size: clamp(2.5rem, 5vw, 4rem); background: linear-gradient(135deg, var(--neon), var(--neon2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+  .stat-label { font-size: .8rem; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; margin-top: .3rem; }
+
+  /* PORTFOLIO */
+  #portfolio { background: radial-gradient(ellipse at 80% 30%, rgba(123,47,255,.12) 0%, transparent 55%), var(--void); }
+  .portfolio-grid { display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: auto; gap: 1.5px; }
+  .port-item {
+    position: relative; overflow: hidden; background: var(--panel);
+    border: 1px solid var(--border); aspect-ratio: 4/3;
+    cursor: none; transition: border-color .4s;
+  }
+  .port-item:nth-child(1) { grid-column: span 2; grid-row: span 1; }
+  .port-item:nth-child(4) { grid-column: span 2; }
+  .port-bg {
+    position: absolute; inset: 0; transition: transform .6s cubic-bezier(.23,1,.32,1);
+    display: flex; align-items: center; justify-content: center; font-size: 6rem;
+  }
+  .port-bg-1 { background: linear-gradient(135deg, #0a1628, #0d2545, #0a3060); }
+  .port-bg-2 { background: linear-gradient(135deg, #160a2e, #2d0a5c, #1a0a30); }
+  .port-bg-3 { background: linear-gradient(135deg, #0a1a28, #0a3040, #051525); }
+  .port-bg-4 { background: linear-gradient(135deg, #1a0a28, #280a40, #120a20); }
+  .port-bg-5 { background: linear-gradient(135deg, #0a200a, #0a3018, #05150a); }
+  .port-overlay {
+    position: absolute; inset: 0; background: linear-gradient(135deg, rgba(0,0,0,.7), rgba(0,20,50,.85));
+    display: flex; flex-direction: column; justify-content: flex-end; padding: 2rem;
+    opacity: 0; transform: translateY(20px); transition: opacity .4s, transform .4s;
+  }
+  .port-item:hover .port-overlay { opacity: 1; transform: translateY(0); }
+  .port-item:hover .port-bg { transform: scale(1.07); }
+  .port-item:hover { border-color: rgba(0,180,255,.4); }
+  .port-cat { font-size: .7rem; letter-spacing: 3px; text-transform: uppercase; color: var(--neon); margin-bottom: .4rem; }
+  .port-title { font-size: 1.15rem; font-weight: 700; }
+  .port-year { font-size: .8rem; color: var(--muted); margin-top: .25rem; }
+
+  /* PRICING */
+  #pricing { background: radial-gradient(ellipse at 50% 0%, rgba(0,40,100,.2) 0%, transparent 60%), var(--void); }
+  .pricing-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
+  .price-card {
+    border: 1px solid var(--border); padding: 2.8rem 2.2rem;
+    background: var(--panel); backdrop-filter: blur(20px);
+    border-radius: 4px; position: relative; overflow: hidden;
+    transition: transform .4s, border-color .4s;
+  }
+  .price-card.featured {
+    border-color: rgba(0,180,255,.5);
+    background: linear-gradient(160deg, rgba(0,30,80,.8), rgba(20,0,60,.8));
+    transform: scale(1.03);
+  }
+  .price-card.featured::before {
+    content: 'MOST POPULAR'; position: absolute; top: 0; right: 0;
+    background: linear-gradient(135deg, var(--neon), var(--neon2));
+    font-size: .65rem; letter-spacing: 2px; padding: 6px 18px; font-weight: 700;
+  }
+  .price-card:hover { transform: translateY(-8px); border-color: rgba(0,180,255,.5); }
+  .price-card.featured:hover { transform: scale(1.03) translateY(-8px); }
+  .price-tier { font-size: .75rem; letter-spacing: 3px; text-transform: uppercase; color: var(--neon2); margin-bottom: 1rem; }
+  .price-name { font-family: 'Bebas Neue', sans-serif; font-size: 2rem; margin-bottom: 1rem; }
+  .price-val { font-family: 'Bebas Neue', sans-serif; font-size: 3.5rem; line-height: 1; margin-bottom: .3rem; }
+  .price-val span { font-size: 1.2rem; font-family: 'Outfit', sans-serif; color: var(--muted); }
+  .price-per { font-size: .8rem; color: var(--muted); margin-bottom: 2rem; }
+  .price-features { list-style: none; margin-bottom: 2.5rem; }
+  .price-features li { padding: .6rem 0; font-size: .9rem; color: var(--muted); border-bottom: 1px solid rgba(255,255,255,.05); display: flex; align-items: center; gap: .7rem; }
+  .price-features li::before { content: '✦'; color: var(--neon); font-size: .65rem; }
+  .btn-plan {
+    width: 100%; padding: 13px; border-radius: 30px; font-weight: 700;
+    font-size: .85rem; letter-spacing: 1.5px; text-transform: uppercase;
+    cursor: none; transition: all .3s; text-align: center; display: block;
+    text-decoration: none;
+  }
+  .btn-plan-outline { border: 1.5px solid var(--neon); color: var(--neon); background: transparent; }
+  .btn-plan-outline:hover { background: var(--neon); color: var(--void); }
+  .btn-plan-fill { background: linear-gradient(135deg, var(--neon), var(--neon2)); color: #fff; border: none; box-shadow: 0 0 30px rgba(0,180,255,.3); }
+  .btn-plan-fill:hover { box-shadow: 0 0 50px rgba(0,180,255,.5); transform: translateY(-2px); }
+
+  /* TESTIMONIALS */
+  #testimonials { padding: 90px 6vw; }
+  .testimonials-track { display: flex; gap: 1.5rem; overflow: hidden; }
+  .testi-card {
+    min-width: 380px; flex: none; padding: 2.2rem; border: 1px solid var(--border);
+    background: var(--panel); backdrop-filter: blur(20px);
+    position: relative; overflow: hidden;
+  }
+  .testi-card::before { content: '"'; position: absolute; top: .5rem; right: 1.5rem; font-size: 8rem; line-height: 1; font-family: 'Bebas Neue', sans-serif; color: rgba(0,180,255,.07); }
+  .testi-stars { color: var(--gold); font-size: .9rem; margin-bottom: 1rem; }
+  .testi-text { font-size: .95rem; color: var(--muted); line-height: 1.75; margin-bottom: 1.5rem; }
+  .testi-author { display: flex; align-items: center; gap: 1rem; }
+  .testi-avatar { width: 44px; height: 44px; border-radius: 50%; background: linear-gradient(135deg, var(--neon), var(--neon2)); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: .9rem; color: #fff; }
+  .testi-name { font-weight: 600; font-size: .9rem; }
+  .testi-role { font-size: .78rem; color: var(--muted); }
+
+  /* CONTACT */
+  #contact { background: radial-gradient(ellipse at 30% 70%, rgba(123,47,255,.12) 0%, transparent 50%), var(--void); }
+  .contact-wrap { display: grid; grid-template-columns: 1fr 1.4fr; gap: 5rem; align-items: start; }
+  .contact-info h2 { font-family: 'Bebas Neue', sans-serif; font-size: clamp(2.5rem, 4vw, 3.8rem); line-height: 1; margin-bottom: 1.5rem; }
+  .contact-channels { margin-top: 3rem; display: flex; flex-direction: column; gap: 1.2rem; }
+  .channel { display: flex; align-items: center; gap: 1rem; padding: 1rem 1.4rem; border: 1px solid var(--border); background: var(--panel); backdrop-filter: blur(10px); transition: border-color .3s; }
+  .channel:hover { border-color: rgba(0,180,255,.4); }
+  .channel-icon { font-size: 1.4rem; }
+  .channel-label { font-size: .75rem; letter-spacing: 2px; text-transform: uppercase; color: var(--neon); margin-bottom: .15rem; }
+  .channel-val { font-size: .9rem; font-weight: 500; }
+  .contact-form { display: flex; flex-direction: column; gap: 1rem; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .form-field { position: relative; }
+  .form-field input, .form-field textarea, .form-field select {
+    width: 100%; padding: 14px 18px; background: rgba(0,20,60,.5);
+    border: 1px solid var(--border); color: var(--text); font-family: 'Outfit', sans-serif;
+    font-size: .9rem; outline: none; transition: border-color .3s;
+    appearance: none; -webkit-appearance: none;
+  }
+  .form-field input:focus, .form-field textarea:focus, .form-field select:focus { border-color: rgba(0,180,255,.6); }
+  .form-field textarea { min-height: 130px; resize: vertical; }
+  .form-field input::placeholder, .form-field textarea::placeholder { color: rgba(200,220,255,.3); }
+  .form-field select option { background: #060c20; }
+
+  /* CHATBOT */
+  #chatbot-fab {
+    position: fixed; bottom: 2.5rem; right: 2.5rem; z-index: 9000;
+    width: 60px; height: 60px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--neon), var(--neon2));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.6rem; cursor: none; box-shadow: 0 0 30px rgba(0,180,255,.5);
+    animation: pulse-glow 2s infinite;
+    transition: transform .3s;
+  }
+  #chatbot-fab:hover { transform: scale(1.1); }
+  #chatbot-panel {
+    position: fixed; bottom: 7.5rem; right: 2.5rem; z-index: 9001;
+    width: 340px; background: rgba(4,12,30,.97); border: 1px solid rgba(0,180,255,.3);
+    backdrop-filter: blur(25px); border-radius: 4px;
+    display: none; flex-direction: column;
+    box-shadow: 0 0 60px rgba(0,180,255,.2);
+    overflow: hidden;
+  }
+  #chatbot-panel.open { display: flex; animation: slideUp .4s ease; }
+  .chat-header { padding: 1rem 1.2rem; background: linear-gradient(135deg, rgba(0,40,100,.5), rgba(50,0,100,.5)); border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: .8rem; }
+  .chat-avatar { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, var(--neon), var(--neon2)); display: flex; align-items: center; justify-content: center; font-size: 1.1rem; }
+  .chat-name { font-weight: 700; font-size: .9rem; }
+  .chat-status { font-size: .72rem; color: #00ff9d; }
+  .chat-messages { flex: 1; padding: 1.2rem; display: flex; flex-direction: column; gap: .8rem; max-height: 280px; overflow-y: auto; }
+  .msg { padding: .75rem 1rem; border-radius: 4px; font-size: .85rem; line-height: 1.55; max-width: 85%; }
+  .msg-bot { background: rgba(0,40,100,.5); border: 1px solid var(--border); align-self: flex-start; }
+  .msg-user { background: linear-gradient(135deg, rgba(0,100,200,.4), rgba(80,0,180,.4)); align-self: flex-end; border: 1px solid rgba(123,47,255,.3); }
+  .chat-input { display: flex; border-top: 1px solid var(--border); }
+  .chat-input input { flex: 1; background: transparent; border: none; padding: 1rem 1.2rem; color: var(--text); font-family: 'Outfit', sans-serif; font-size: .88rem; outline: none; }
+  .chat-input input::placeholder { color: rgba(200,220,255,.3); }
+  .chat-send { padding: 1rem 1.2rem; background: var(--neon); border: none; color: var(--void); font-size: 1.1rem; cursor: none; transition: background .3s; }
+  .chat-send:hover { background: var(--neon2); }
+  .chat-quick { padding: .7rem 1rem; border-top: 1px solid var(--border); display: flex; gap: .5rem; flex-wrap: wrap; }
+  .q-btn { padding: 4px 12px; border: 1px solid var(--border); background: transparent; color: var(--muted); font-size: .72rem; border-radius: 20px; cursor: none; transition: all .3s; font-family: 'Outfit', sans-serif; }
+  .q-btn:hover { border-color: var(--neon); color: var(--neon); background: rgba(0,180,255,.08); }
+
+  /* FOOTER */
+  footer {
+    padding: 5rem 6vw 2.5rem;
+    background: linear-gradient(180deg, transparent, rgba(0,5,20,.8));
+    border-top: 1px solid var(--border);
+  }
+  .footer-top { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 3rem; margin-bottom: 3rem; }
+  .footer-brand .nav-logo { display: block; margin-bottom: 1rem; text-decoration: none; }
+  .footer-desc { font-size: .88rem; color: var(--muted); line-height: 1.7; max-width: 280px; margin-bottom: 1.5rem; }
+  .footer-social { display: flex; gap: .8rem; }
+  .soc-btn { width: 36px; height: 36px; border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: .9rem; color: var(--muted); transition: border-color .3s, color .3s; text-decoration: none; }
+  .soc-btn:hover { border-color: var(--neon); color: var(--neon); }
+  .footer-col h4 { font-size: .75rem; letter-spacing: 3px; text-transform: uppercase; color: var(--neon); margin-bottom: 1.2rem; }
+  .footer-col ul { list-style: none; display: flex; flex-direction: column; gap: .7rem; }
+  .footer-col ul a { color: var(--muted); text-decoration: none; font-size: .88rem; transition: color .3s; }
+  .footer-col ul a:hover { color: var(--text); }
+  .footer-bottom { border-top: 1px solid var(--border); padding-top: 1.8rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
+  .footer-copy { font-size: .8rem; color: var(--muted); }
+  .footer-founder { font-size: .8rem; color: var(--muted); }
+  .founder-name { color: var(--neon); font-weight: 600; }
+
+  /* PROCESS */
+  #process { background: var(--void); }
+  .process-steps { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0; position: relative; }
+  .process-steps::before { content: ''; position: absolute; top: 30px; left: 10%; right: 10%; height: 1px; background: linear-gradient(90deg, transparent, var(--neon), var(--neon2), var(--neon3), transparent); }
+  .process-step { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 0 1rem; }
+  .step-num { width: 60px; height: 60px; border-radius: 50%; background: var(--panel); border: 2px solid var(--neon); display: flex; align-items: center; justify-content: center; font-family: 'Bebas Neue', sans-serif; font-size: 1.5rem; color: var(--neon); margin-bottom: 1.5rem; position: relative; z-index: 1; }
+  .step-title { font-weight: 700; font-size: .95rem; margin-bottom: .5rem; }
+  .step-desc { font-size: .82rem; color: var(--muted); line-height: 1.6; }
+
+  /* TECH MARQUEE */
+  #tech { padding: 50px 0; overflow: hidden; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); background: rgba(0,10,30,.5); }
+  .marquee-track { display: flex; gap: 3rem; animation: marquee 20s linear infinite; white-space: nowrap; }
+  .marquee-item { font-size: .8rem; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); display: flex; align-items: center; gap: .7rem; }
+  .marquee-item span { color: var(--neon); font-size: 1rem; }
+
+  /* KEYFRAMES */
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes scrollPulse { 0%,100% { opacity: .3; transform: scaleY(1); } 50% { opacity: 1; transform: scaleY(1.2); } }
+  @keyframes pulse-glow { 0%,100% { box-shadow: 0 0 30px rgba(0,180,255,.5); } 50% { box-shadow: 0 0 60px rgba(0,180,255,.8); } }
+  @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+  @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+  @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-18px); } }
+  @keyframes glitch {
+    0%,100% { clip-path: none; transform: none; }
+    92% { clip-path: none; transform: none; }
+    93% { clip-path: inset(20% 0 60% 0); transform: translateX(-3px); }
+    94% { clip-path: inset(60% 0 10% 0); transform: translateX(3px); }
+    95% { clip-path: none; transform: none; }
+  }
+
+  /* REVEAL ANIMATIONS */
+  .reveal { opacity: 0; transform: translateY(40px); transition: opacity .8s ease, transform .8s ease; }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+  .reveal-left { opacity: 0; transform: translateX(-40px); transition: opacity .8s ease, transform .8s ease; }
+  .reveal-left.visible { opacity: 1; transform: translateX(0); }
+
+  /* MOBILE */
+  @media (max-width: 900px) {
+    .nav-links { display: none; }
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .pricing-grid { grid-template-columns: 1fr; }
+    .portfolio-grid { grid-template-columns: 1fr 1fr; }
+    .port-item:nth-child(1), .port-item:nth-child(4) { grid-column: span 2; }
+    .contact-wrap { grid-template-columns: 1fr; gap: 3rem; }
+    .footer-top { grid-template-columns: 1fr 1fr; }
+    .process-steps { grid-template-columns: 1fr; }
+    .process-steps::before { display: none; }
+    .form-row { grid-template-columns: 1fr; }
+    .services-grid { grid-template-columns: 1fr; }
+    #chatbot-panel { width: calc(100vw - 3rem); right: 1.5rem; }
+  }
+  @media (max-width: 600px) {
+    .portfolio-grid { grid-template-columns: 1fr; }
+    .port-item:nth-child(1), .port-item:nth-child(4) { grid-column: span 1; }
+    .footer-top { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- CURSOR -->
+<div id="cursor"></div>
+<div id="cursor-ring"></div>
+
+<!-- NAVIGATION -->
+<nav>
+  <a href="#hero" class="nav-logo" style="text-decoration:none;">CREVIXA</a>
+  <ul class="nav-links">
+    <li><a href="#services">Services</a></li>
+    <li><a href="#portfolio">Portfolio</a></li>
+    <li><a href="#pricing">Pricing</a></li>
+    <li><a href="#process">Process</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+  <a href="#contact" class="nav-cta">Book Consultation</a>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <canvas id="hero-canvas"></canvas>
+  <div class="hero-content">
+    <div class="hero-badge">✦ Next Generation Digital Agency ✦</div>
+    <h1 class="hero-title">
+      We Build Digital<br><span>Experiences</span><br>That Dominate
+    </h1>
+    <p class="hero-sub">3D Web Development · Branding · AI Automation · Digital Marketing — engineered to sell, scale, and define your category.</p>
+    <div class="hero-btns">
+      <a href="#services" class="btn-primary">Explore Services</a>
+      <a href="#portfolio" class="btn-secondary">View Portfolio</a>
+      <a href="#contact" class="btn-secondary">Book Consultation</a>
+    </div>
+  </div>
+  <div class="hero-scroll">
+    <div class="scroll-line"></div>
+    <span>Scroll</span>
+  </div>
+</section>
+
+<!-- TECH MARQUEE -->
+<div id="tech">
+  <div class="marquee-track" id="marquee">
+    <div class="marquee-item"><span>⬡</span> Three.js</div>
+    <div class="marquee-item"><span>⬡</span> WebGL</div>
+    <div class="marquee-item"><span>⬡</span> GSAP</div>
+    <div class="marquee-item"><span>⬡</span> React</div>
+    <div class="marquee-item"><span>⬡</span> Node.js</div>
+    <div class="marquee-item"><span>⬡</span> AI Systems</div>
+    <div class="marquee-item"><span>⬡</span> Framer Motion</div>
+    <div class="marquee-item"><span>⬡</span> TailwindCSS</div>
+    <div class="marquee-item"><span>⬡</span> MongoDB</div>
+    <div class="marquee-item"><span>⬡</span> Firebase</div>
+    <div class="marquee-item"><span>⬡</span> Next.js</div>
+    <div class="marquee-item"><span>⬡</span> Blender 3D</div>
+    <div class="marquee-item"><span>⬡</span> Three.js</div>
+    <div class="marquee-item"><span>⬡</span> WebGL</div>
+    <div class="marquee-item"><span>⬡</span> GSAP</div>
+    <div class="marquee-item"><span>⬡</span> React</div>
+    <div class="marquee-item"><span>⬡</span> Node.js</div>
+    <div class="marquee-item"><span>⬡</span> AI Systems</div>
+    <div class="marquee-item"><span>⬡</span> Framer Motion</div>
+    <div class="marquee-item"><span>⬡</span> TailwindCSS</div>
+    <div class="marquee-item"><span>⬡</span> MongoDB</div>
+    <div class="marquee-item"><span>⬡</span> Firebase</div>
+    <div class="marquee-item"><span>⬡</span> Next.js</div>
+    <div class="marquee-item"><span>⬡</span> Blender 3D</div>
+  </div>
+</div>
+
+<!-- SERVICES -->
+<section id="services">
+  <div class="section-tag reveal">What We Do</div>
+  <h2 class="section-title reveal">Our <span class="accent">Services</span></h2>
+  <p class="section-sub reveal">From pixel-perfect visuals to full-stack AI systems — every service engineered for measurable impact.</p>
+  <div class="services-grid reveal">
+    <div class="service-card">
+      <span class="service-num">01</span>
+      <span class="service-icon">🌐</span>
+      <div class="service-name">3D Web Development</div>
+      <div class="service-desc">Immersive WebGL experiences with Three.js, real-time rendering, and physics-based interactions that make competitors obsolete.</div>
+      <div class="service-arrow">Explore → </div>
+    </div>
+    <div class="service-card">
+      <span class="service-num">02</span>
+      <span class="service-icon">💻</span>
+      <div class="service-name">Web Development</div>
+      <div class="service-desc">Full-stack platforms, SaaS products, and high-conversion websites built on React, Next.js, and Node with enterprise-grade architecture.</div>
+      <div class="service-arrow">Explore → </div>
+    </div>
+    <div class="service-card">
+      <span class="service-num">03</span>
+      <span class="service-icon">🎨</span>
+      <div class="service-name">Graphic Designing</div>
+      <div class="service-desc">Brand identities, UI/UX systems, and print-to-digital visual assets crafted to position you as the premium choice in your market.</div>
+      <div class="service-arrow">Explore → </div>
+    </div>
+    <div class="service-card">
+      <span class="service-num">04</span>
+      <span class="service-icon">🎬</span>
+      <div class="service-name">Video Editing</div>
+      <div class="service-desc">Cinematic brand films, social content, explainer videos, and motion graphics that capture attention in the first 2 seconds.</div>
+      <div class="service-arrow">Explore → </div>
+    </div>
+    <div class="service-card">
+      <span class="service-num">05</span>
+      <span class="service-icon">📈</span>
+      <div class="service-name">Digital Marketing</div>
+      <div class="service-desc">Data-driven campaigns across paid, organic, and social channels — optimized for ROAS, CAC, and lifetime value growth.</div>
+      <div class="service-arrow">Explore → </div>
+    </div>
+    <div class="service-card">
+      <span class="service-num">06</span>
+      <span class="service-icon">🧠</span>
+      <div class="service-name">Branding Strategy</div>
+      <div class="service-desc">Complete brand architecture: positioning, identity, voice, and messaging that commands premium pricing and category leadership.</div>
+      <div class="service-arrow">Explore → </div>
+    </div>
+    <div class="service-card">
+      <span class="service-num">07</span>
+      <span class="service-icon">📱</span>
+      <div class="service-name">Social Media Marketing</div>
+      <div class="service-desc">Organic growth systems, content strategy, and community building that turn followers into a revenue-generating asset.</div>
+      <div class="service-arrow">Explore → </div>
+    </div>
+    <div class="service-card">
+      <span class="service-num">08</span>
+      <span class="service-icon">🤖</span>
+      <div class="service-name">AI Automation Systems</div>
+      <div class="service-desc">Custom AI workflows, chatbots, CRM integrations, and business automation that eliminate bottlenecks and compound returns.</div>
+      <div class="service-arrow">Explore → </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- STATS -->
+<section id="stats">
+  <div class="stats-grid">
+    <div class="reveal">
+      <div class="stat-val" data-count="250">0</div>
+      <div class="stat-label">Projects Delivered</div>
+    </div>
+    <div class="reveal">
+      <div class="stat-val" data-count="40">0</div>
+      <div class="stat-label">Countries Served</div>
+    </div>
+    <div class="reveal">
+      <div class="stat-val" data-count="98">0</div>
+      <div class="stat-label">Client Satisfaction %</div>
+    </div>
+    <div class="reveal">
+      <div class="stat-val" data-count="12">0</div>
+      <div class="stat-label">Industry Awards</div>
+    </div>
+  </div>
+</section>
+
+<!-- PORTFOLIO -->
+<section id="portfolio">
+  <div class="section-tag reveal">Our Work</div>
+  <h2 class="section-title reveal">Selected <span class="accent">Portfolio</span></h2>
+  <p class="section-sub reveal">A curated showcase of transformative digital experiences — each one built to define an industry.</p>
+  <div class="portfolio-grid reveal">
+    <div class="port-item">
+      <div class="port-bg port-bg-1">🌐</div>
+      <div class="port-overlay">
+        <div class="port-cat">3D Web Development</div>
+        <div class="port-title">Nexus Finance Platform</div>
+        <div class="port-year">2025 · Dubai, UAE</div>
+      </div>
+    </div>
+    <div class="port-item">
+      <div class="port-bg port-bg-2">🧠</div>
+      <div class="port-overlay">
+        <div class="port-cat">Branding</div>
+        <div class="port-title">Orion Luxury Brand Identity</div>
+        <div class="port-year">2025 · London, UK</div>
+      </div>
+    </div>
+    <div class="port-item">
+      <div class="port-bg port-bg-3">🎬</div>
+      <div class="port-overlay">
+        <div class="port-cat">Video Production</div>
+        <div class="port-title">TechLaunch Campaign Film</div>
+        <div class="port-year">2025 · New York, USA</div>
+      </div>
+    </div>
+    <div class="port-item">
+      <div class="port-bg port-bg-4">🤖</div>
+      <div class="port-overlay">
+        <div class="port-cat">AI Automation</div>
+        <div class="port-title">E-com AI Sales Engine</div>
+        <div class="port-year">2025 · Singapore</div>
+      </div>
+    </div>
+    <div class="port-item">
+      <div class="port-bg port-bg-5">📈</div>
+      <div class="port-overlay">
+        <div class="port-cat">Digital Marketing</div>
+        <div class="port-title">HealthTech Growth System</div>
+        <div class="port-year">2026 · Toronto, CA</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PROCESS -->
+<section id="process">
+  <div class="section-tag reveal" style="text-align:center">How We Work</div>
+  <h2 class="section-title reveal" style="text-align:center">The <span class="accent">Process</span></h2>
+  <p class="section-sub reveal" style="text-align:center; margin: 0 auto 4rem;">Five steps. Zero ambiguity. Maximum results.</p>
+  <div class="process-steps">
+    <div class="process-step reveal">
+      <div class="step-num">01</div>
+      <div class="step-title">Discovery</div>
+      <div class="step-desc">Deep dive into your goals, audience, and competitive landscape</div>
+    </div>
+    <div class="process-step reveal">
+      <div class="step-num">02</div>
+      <div class="step-title">Strategy</div>
+      <div class="step-desc">Custom roadmap aligned to growth metrics and ROI targets</div>
+    </div>
+    <div class="process-step reveal">
+      <div class="step-num">03</div>
+      <div class="step-title">Design</div>
+      <div class="step-desc">Luxury UI/UX systems built for conversion and brand impact</div>
+    </div>
+    <div class="process-step reveal">
+      <div class="step-num">04</div>
+      <div class="step-title">Build</div>
+      <div class="step-desc">Full-stack development with 3D, AI, and automation layers</div>
+    </div>
+    <div class="process-step reveal">
+      <div class="step-num">05</div>
+      <div class="step-title">Launch & Scale</div>
+      <div class="step-desc">Deploy, optimize, and grow with ongoing performance support</div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- PRICING -->
+<section id="pricing">
+  <div class="section-tag reveal">Investment</div>
+  <h2 class="section-title reveal">Clear <span class="accent">Pricing</span></h2>
+  <p class="section-sub reveal">Transparent packages. No surprises. Pick your level — or let us design a custom engagement.</p>
+  <div class="pricing-grid reveal">
+    <!-- Basic -->
+    <div class="price-card">
+      <div class="price-tier">Starter</div>
+      <div class="price-name">Basic Plan</div>
+      <div class="price-val"><span>$</span>1,499</div>
+      <div class="price-per">one-time project</div>
+      <ul class="price-features">
+        <li>Responsive Website (up to 5 pages)</li>
+        <li>Brand Identity Kit</li>
+        <li>Social Media Setup</li>
+        <li>SEO Foundation</li>
+        <li>1 Month Support</li>
+      </ul>
+      <a href="#contact" class="btn-plan btn-plan-outline">Get Started</a>
+    </div>
+    <!-- Pro -->
+    <div class="price-card featured">
+      <div class="price-tier">Growth</div>
+      <div class="price-name">Professional Plan</div>
+      <div class="price-val"><span>$</span>4,999</div>
+      <div class="price-per">one-time project</div>
+      <ul class="price-features">
+        <li>Advanced 3D Website</li>
+        <li>Full Brand System</li>
+        <li>Marketing Automation Setup</li>
+        <li>UI/UX Design System</li>
+        <li>Video Production (2 assets)</li>
+        <li>3 Months Support</li>
+      </ul>
+      <a href="#contact" class="btn-plan btn-plan-fill">Book Now</a>
+    </div>
+    <!-- Premium -->
+    <div class="price-card">
+      <div class="price-tier">Dominance</div>
+      <div class="price-name">Premium Plan</div>
+      <div class="price-val"><span>$</span>12,999</div>
+      <div class="price-per">full engagement</div>
+      <ul class="price-features">
+        <li>Full 3D WebGL Experience</li>
+        <li>AI Integration & Automation</li>
+        <li>Full Business Automation</li>
+        <li>12-Month Retainer Option</li>
+        <li>Dedicated Project Manager</li>
+        <li>Priority 24/7 Support</li>
+      </ul>
+      <a href="#contact" class="btn-plan btn-plan-outline">Let's Talk</a>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section id="testimonials" style="padding-top:0;">
+  <div class="section-tag reveal">Social Proof</div>
+  <h2 class="section-title reveal">Client <span class="accent2">Stories</span></h2>
+  <div class="testimonials-track" id="testiTrack">
+    <div class="testi-card">
+      <div class="testi-stars">★★★★★</div>
+      <p class="testi-text">Crevixa didn't build us a website — they built us a weapon. Our conversion rate tripled in 60 days and we've never looked more premium in our industry.</p>
+      <div class="testi-author">
+        <div class="testi-avatar">AK</div>
+        <div>
+          <div class="testi-name">Ahmed Khalid</div>
+          <div class="testi-role">CEO, Nexus Capital · Dubai</div>
+        </div>
+      </div>
+    </div>
+    <div class="testi-card">
+      <div class="testi-stars">★★★★★</div>
+      <p class="testi-text">The AI automation system they built eliminated 60% of our manual processes. It paid for itself in the first month. Genuinely transformative work.</p>
+      <div class="testi-author">
+        <div class="testi-avatar">SR</div>
+        <div>
+          <div class="testi-name">Sophie Renault</div>
+          <div class="testi-role">COO, BioCore Health · Paris</div>
+        </div>
+      </div>
+    </div>
+    <div class="testi-card">
+      <div class="testi-stars">★★★★★</div>
+      <p class="testi-text">Our brand went from forgettable to iconic. The identity work, the 3D site, the video — everything aligned. We charge 3x more now and clients expect it.</p>
+      <div class="testi-author">
+        <div class="testi-avatar">JT</div>
+        <div>
+          <div class="testi-name">James Thompson</div>
+          <div class="testi-role">Founder, Apex Studio · London</div>
+        </div>
+      </div>
+    </div>
+    <div class="testi-card">
+      <div class="testi-stars">★★★★★</div>
+      <p class="testi-text">Hasnain and his team understand business, not just design. Every decision they made was tied to conversion. This is the agency you hire when you're serious.</p>
+      <div class="testi-author">
+        <div class="testi-avatar">NM</div>
+        <div>
+          <div class="testi-name">Nadia Morales</div>
+          <div class="testi-role">CMO, FluxTech · New York</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section id="contact">
+  <div class="contact-wrap">
+    <div class="contact-info reveal-left">
+      <div class="section-tag">Start a Project</div>
+      <h2>Let's Build <span class="accent">Something</span> Extraordinary</h2>
+      <p style="color:var(--muted); font-size:.95rem; line-height:1.75; margin-top:1rem;">Tell us about your vision. We'll respond within 24 hours with a tailored strategy and transparent proposal.</p>
+      <div class="contact-channels">
+        <div class="channel">
+          <div class="channel-icon">💬</div>
+          <div>
+            <div class="channel-label">WhatsApp</div>
+            <div class="channel-val">+92 300 000 0000</div>
+          </div>
+        </div>
+        <div class="channel">
+          <div class="channel-icon">📧</div>
+          <div>
+            <div class="channel-label">Email</div>
+            <div class="channel-val">hello@crevixa.com</div>
+          </div>
+        </div>
+        <div class="channel">
+          <div class="channel-icon">📍</div>
+          <div>
+            <div class="channel-label">Based In</div>
+            <div class="channel-val">Karachi, Pakistan · Global</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <form class="contact-form reveal" onsubmit="handleSubmit(event)">
+      <div class="form-row">
+        <div class="form-field"><input type="text" placeholder="Your Name" required></div>
+        <div class="form-field"><input type="text" placeholder="Business Name"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-field"><input type="email" placeholder="Email Address" required></div>
+        <div class="form-field"><input type="text" placeholder="Estimated Budget"></div>
+      </div>
+      <div class="form-field">
+        <select>
+          <option value="" disabled selected>Project Type</option>
+          <option>3D Web Development</option>
+          <option>Web Development</option>
+          <option>Graphic Design</option>
+          <option>Video Editing</option>
+          <option>Digital Marketing</option>
+          <option>Branding Strategy</option>
+          <option>Social Media Marketing</option>
+          <option>AI Automation</option>
+          <option>Full Package</option>
+        </select>
+      </div>
+      <div class="form-field"><textarea placeholder="Tell us about your project…"></textarea></div>
+      <button type="submit" class="btn-primary" style="border:none; font-size:.9rem; padding:16px; cursor:none;">Send Message →</button>
+    </form>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-top">
+    <div class="footer-brand">
+      <a href="#hero" class="nav-logo" style="font-family:'Bebas Neue',sans-serif; font-size:2rem; letter-spacing:4px; background:linear-gradient(90deg,var(--neon),var(--neon2)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; text-decoration:none; display:block; margin-bottom:1rem;">CREVIXA</a>
+      <p class="footer-desc">Next generation digital agency. We build experiences that sell, scale, and dominate — for ambitious brands worldwide.</p>
+      <div class="footer-social">
+        <a href="#" class="soc-btn">𝕏</a>
+        <a href="#" class="soc-btn">in</a>
+        <a href="#" class="soc-btn">⟡</a>
+        <a href="#" class="soc-btn">▶</a>
+      </div>
+    </div>
+    <div class="footer-col">
+      <h4>Services</h4>
+      <ul>
+        <li><a href="#services">3D Web Development</a></li>
+        <li><a href="#services">Web Development</a></li>
+        <li><a href="#services">Graphic Design</a></li>
+        <li><a href="#services">Video Editing</a></li>
+        <li><a href="#services">AI Automation</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Company</h4>
+      <ul>
+        <li><a href="#portfolio">Portfolio</a></li>
+        <li><a href="#process">Process</a></li>
+        <li><a href="#pricing">Pricing</a></li>
+        <li><a href="#contact">Contact</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Contact</h4>
+      <ul>
+        <li><a href="#">hello@crevixa.com</a></li>
+        <li><a href="#">WhatsApp Chat</a></li>
+        <li><a href="#">Book a Call</a></li>
+        <li><a href="#">Karachi, Pakistan</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <div class="footer-copy">© 2026 Crevixa. All Rights Reserved.</div>
+    <div class="footer-founder">Managed by <span class="founder-name">Siddiqui Group</span> · Founded by <span class="founder-name">Muhammad Hasnain Siddiqui</span></div>
+  </div>
+</footer>
+
+<!-- AI CHATBOT -->
+<div id="chatbot-fab" onclick="toggleChat()">🤖</div>
+<div id="chatbot-panel">
+  <div class="chat-header">
+    <div class="chat-avatar">✦</div>
+    <div>
+      <div class="chat-name">Crevixa AI</div>
+      <div class="chat-status">● Online – Ready to Help</div>
+    </div>
+  </div>
+  <div class="chat-messages" id="chatMessages">
+    <div class="msg msg-bot">👋 Hey! I'm the Crevixa AI assistant. I can help you explore our services, pricing, or book a consultation. What are you looking to build?</div>
+  </div>
+  <div class="chat-quick">
+    <button class="q-btn" onclick="quickMsg('Tell me about pricing')">💰 Pricing</button>
+    <button class="q-btn" onclick="quickMsg('What services do you offer?')">🛠 Services</button>
+    <button class="q-btn" onclick="quickMsg('I want to book a consultation')">📅 Book Call</button>
+  </div>
+  <div class="chat-input">
+    <input type="text" id="chatInput" placeholder="Ask anything…" onkeypress="if(event.key==='Enter')sendChat()">
+    <button class="chat-send" onclick="sendChat()">→</button>
+  </div>
+</div>
+
+<!-- THREE.JS HERO SCENE -->
+<script>
+(function() {
+  const canvas = document.getElementById('hero-canvas');
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setClearColor(0x000000, 0);
+
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+  camera.position.set(0, 0, 18);
+
+  // Lights
+  const ambient = new THREE.AmbientLight(0x0a1a40, 2);
+  scene.add(ambient);
+  const light1 = new THREE.PointLight(0x00b4ff, 3, 50);
+  light1.position.set(10, 10, 10);
+  scene.add(light1);
+  const light2 = new THREE.PointLight(0x7b2fff, 2, 50);
+  light2.position.set(-10, -5, 5);
+  scene.add(light2);
+  const light3 = new THREE.PointLight(0xff2fff, 1.5, 40);
+  light3.position.set(0, -10, -5);
+  scene.add(light3);
+
+  // Central sphere (globe)
+  const geoSphere = new THREE.IcosahedronGeometry(3.5, 4);
+  const matSphere = new THREE.MeshPhongMaterial({
+    color: 0x001428, wireframe: true,
+    emissive: 0x001428, specular: 0x00b4ff,
+    shininess: 120
+  });
+  const sphere = new THREE.Mesh(geoSphere, matSphere);
+  scene.add(sphere);
+
+  // Inner glowing core
+  const geoCore = new THREE.SphereGeometry(2.8, 32, 32);
+  const matCore = new THREE.MeshPhongMaterial({
+    color: 0x002050, emissive: 0x001040, transparent: true, opacity: .6
+  });
+  const core = new THREE.Mesh(geoCore, matCore);
+  scene.add(core);
+
+  // Orbiting rings
+  function makeRing(r, tube, color, tilt) {
+    const geo = new THREE.TorusGeometry(r, tube, 8, 80);
+    const mat = new THREE.MeshPhongMaterial({ color, emissive: color, emissiveIntensity: .4, transparent: true, opacity: .6 });
+    const mesh = new THREE.Mesh(geo, mat);
+    mesh.rotation.x = tilt;
+    mesh.rotation.y = Math.random() * Math.PI;
+    return mesh;
+  }
+  const ring1 = makeRing(5.5, 0.04, 0x00b4ff, 1.2);
+  const ring2 = makeRing(7, 0.03, 0x7b2fff, 0.4);
+  const ring3 = makeRing(8.5, 0.025, 0xff2fff, 0.8);
+  scene.add(ring1, ring2, ring3);
+
+  // Floating particles
+  const particleCount = 1200;
+  const positions = new Float32Array(particleCount * 3);
+  for (let i = 0; i < particleCount; i++) {
+    const r = 8 + Math.random() * 20;
+    const theta = Math.random() * Math.PI * 2;
+    const phi = Math.acos(2 * Math.random() - 1);
+    positions[i*3]   = r * Math.sin(phi) * Math.cos(theta);
+    positions[i*3+1] = r * Math.sin(phi) * Math.sin(theta);
+    positions[i*3+2] = r * Math.cos(phi);
+  }
+  const pgeo = new THREE.BufferGeometry();
+  pgeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  const pmat = new THREE.PointsMaterial({ color: 0x00b4ff, size: 0.06, transparent: true, opacity: .6 });
+  const particles = new THREE.Points(pgeo, pmat);
+  scene.add(particles);
+
+  // Floating geometric shapes
+  function makeFloater(geo, color, x, y, z) {
+    const mat = new THREE.MeshPhongMaterial({ color, emissive: color, emissiveIntensity: .3, wireframe: false, transparent: true, opacity: .7 });
+    const mesh = new THREE.Mesh(geo, mat);
+    mesh.position.set(x, y, z);
+    mesh.userData = { ox: x, oy: y, oz: z, speed: .3 + Math.random() * .5, phase: Math.random() * Math.PI * 2 };
+    return mesh;
+  }
+  const floaters = [
+    makeFloater(new THREE.OctahedronGeometry(.5), 0x00b4ff, -7, 3, -2),
+    makeFloater(new THREE.TetrahedronGeometry(.4), 0x7b2fff, 7, -2, -3),
+    makeFloater(new THREE.OctahedronGeometry(.35), 0xff2fff, -5, -4, 2),
+    makeFloater(new THREE.BoxGeometry(.5,.5,.5), 0x00b4ff, 8, 4, 0),
+    makeFloater(new THREE.TetrahedronGeometry(.45), 0x7b2fff, -8, 1, -1),
+    makeFloater(new THREE.OctahedronGeometry(.4), 0xff2fff, 6, -5, 1),
+  ];
+  floaters.forEach(f => scene.add(f));
+
+  // Mouse tracking
+  let mx = 0, my = 0;
+  window.addEventListener('mousemove', e => {
+    mx = (e.clientX / window.innerWidth - .5) * 2;
+    my = -(e.clientY / window.innerHeight - .5) * 2;
+  });
+
+  // Resize
+  window.addEventListener('resize', () => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  });
+
+  let t = 0;
+  function animate() {
+    requestAnimationFrame(animate);
+    t += 0.008;
+    sphere.rotation.y += 0.003;
+    sphere.rotation.x += 0.001;
+    core.rotation.y -= 0.002;
+    ring1.rotation.z += 0.006;
+    ring2.rotation.z -= 0.004;
+    ring3.rotation.z += 0.003;
+    particles.rotation.y += 0.0005;
+
+    floaters.forEach(f => {
+      const d = f.userData;
+      f.position.y = d.oy + Math.sin(t * d.speed + d.phase) * 1.2;
+      f.rotation.x += .01;
+      f.rotation.y += .015;
+    });
+
+    light1.position.x = Math.sin(t * .5) * 12;
+    light1.position.y = Math.cos(t * .3) * 8;
+    light2.position.x = Math.cos(t * .4) * 10;
+    light2.position.y = Math.sin(t * .35) * 7;
+
+    camera.position.x += (mx * 1.5 - camera.position.x) * 0.03;
+    camera.position.y += (my * 1 - camera.position.y) * 0.03;
+    camera.lookAt(scene.position);
+
+    renderer.render(scene, camera);
+  }
+  animate();
+})();
+</script>
+
+<!-- SCROLL ANIMATIONS & INTERACTIONS -->
+<script>
+// Custom Cursor
+const cursor = document.getElementById('cursor');
+const ring = document.getElementById('cursor-ring');
+let rx = 0, ry = 0, cx = 0, cy = 0;
+document.addEventListener('mousemove', e => { cx = e.clientX; cy = e.clientY; cursor.style.left = cx + 'px'; cursor.style.top = cy + 'px'; });
+function animRing() {
+  rx += (cx - rx) * .12;
+  ry += (cy - ry) * .12;
+  ring.style.left = rx + 'px';
+  ring.style.top = ry + 'px';
+  requestAnimationFrame(animRing);
+}
+animRing();
+document.querySelectorAll('a, button, .service-card, .price-card, .port-item, .testi-card, .channel').forEach(el => {
+  el.addEventListener('mouseenter', () => { cursor.style.width = '22px'; cursor.style.height = '22px'; ring.style.width = '60px'; ring.style.height = '60px'; });
+  el.addEventListener('mouseleave', () => { cursor.style.width = '14px'; cursor.style.height = '14px'; ring.style.width = '42px'; ring.style.height = '42px'; });
+});
+
+// Intersection Observer for reveals
+const revealEls = document.querySelectorAll('.reveal, .reveal-left');
+const obs = new IntersectionObserver((entries) => {
+  entries.forEach((e, i) => {
+    if (e.isIntersecting) {
+      setTimeout(() => e.target.classList.add('visible'), i * 60);
+    }
+  });
+}, { threshold: 0.1 });
+revealEls.forEach(el => obs.observe(el));
+
+// Counter animation
+function animateCounter(el, target) {
+  let start = 0;
+  const duration = 2000;
+  const step = (timestamp) => {
+    if (!start) start = timestamp;
+    const progress = Math.min((timestamp - start) / duration, 1);
+    el.textContent = Math.floor(progress * target) + (el.closest('[data-count="98"]') ? '' : '+');
+    if (progress < 1) requestAnimationFrame(step);
+    else el.textContent = target + (target === 98 ? '%' : '+');
+  };
+  requestAnimationFrame(step);
+}
+const counterObs = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      const target = parseInt(e.target.dataset.count);
+      animateCounter(e.target, target);
+      counterObs.unobserve(e.target);
+    }
+  });
+}, { threshold: .3 });
+document.querySelectorAll('[data-count]').forEach(el => counterObs.observe(el));
+
+// Testimonials auto-scroll
+const track = document.getElementById('testiTrack');
+let scrollPos = 0;
+setInterval(() => {
+  scrollPos += 1;
+  if (scrollPos > track.scrollWidth / 2) scrollPos = 0;
+  track.scrollLeft = scrollPos;
+}, 30);
+
+// GSAP ScrollTrigger
+if (typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined') {
+  gsap.registerPlugin(ScrollTrigger);
+  gsap.from('#services .section-title', { scrollTrigger: { trigger: '#services', start: 'top 80%' }, y: 50, opacity: 0, duration: 1 });
+  gsap.from('.service-card', { scrollTrigger: { trigger: '.services-grid', start: 'top 80%' }, y: 60, opacity: 0, duration: .8, stagger: .1 });
+  gsap.from('.price-card', { scrollTrigger: { trigger: '.pricing-grid', start: 'top 80%' }, y: 60, opacity: 0, duration: .8, stagger: .15 });
+  gsap.from('.process-step', { scrollTrigger: { trigger: '.process-steps', start: 'top 80%' }, y: 50, opacity: 0, duration: .7, stagger: .15 });
+}
+
+// Chatbot
+function toggleChat() {
+  const panel = document.getElementById('chatbot-panel');
+  panel.classList.toggle('open');
+}
+
+const botReplies = {
+  'pricing': "We have 3 plans: Basic ($1,499), Professional ($4,999), and Premium ($12,999). Each is tailored to your growth stage. Want me to help find the best fit? 🎯",
+  'services': "We offer: 🌐 3D Web Dev · 💻 Web Dev · 🎨 Graphic Design · 🎬 Video Editing · 📈 Digital Marketing · 🧠 Branding · 📱 Social Media · 🤖 AI Automation. Which interests you most?",
+  'book': "Great! You can use our contact form below, or WhatsApp us directly. We respond within 24 hours with a custom strategy. Ready to start? 🚀",
+  'default': "Great question! Crevixa specializes in building digital experiences that dominate markets. Want to tell me about your project and I'll suggest the best approach? 💡"
+};
+
+function getReply(msg) {
+  const m = msg.toLowerCase();
+  if (m.includes('price') || m.includes('cost') || m.includes('plan')) return botReplies.pricing;
+  if (m.includes('service') || m.includes('offer') || m.includes('what do')) return botReplies.services;
+  if (m.includes('book') || m.includes('consult') || m.includes('call')) return botReplies.book;
+  return botReplies.default;
+}
+
+function sendChat() {
+  const input = document.getElementById('chatInput');
+  const msg = input.value.trim();
+  if (!msg) return;
+  addMsg(msg, 'user');
+  input.value = '';
+  setTimeout(() => addMsg(getReply(msg), 'bot'), 800);
+}
+
+function quickMsg(msg) {
+  addMsg(msg, 'user');
+  setTimeout(() => addMsg(getReply(msg), 'bot'), 800);
+}
+
+function addMsg(text, type) {
+  const msgs = document.getElementById('chatMessages');
+  const div = document.createElement('div');
+  div.className = `msg msg-${type}`;
+  div.textContent = text;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+// Form submit
+function handleSubmit(e) {
+  e.preventDefault();
+  const btn = e.target.querySelector('[type="submit"]');
+  btn.textContent = '✓ Message Sent!';
+  btn.style.background = 'linear-gradient(135deg, #00ff9d, #00b4ff)';
+  setTimeout(() => { btn.textContent = 'Send Message →'; btn.style.background = ''; }, 3000);
+}
+
+// Parallax on scroll
+window.addEventListener('scroll', () => {
+  const y = window.scrollY;
+  const hero = document.getElementById('hero');
+  if (hero) {
+    const content = hero.querySelector('.hero-content');
+    if (content) content.style.transform = `translateY(${y * .25}px)`;
+  }
+});
+</script>
+
+</body>
+</html>
